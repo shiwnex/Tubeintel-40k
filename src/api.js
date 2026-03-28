@@ -21,6 +21,85 @@ async function apiFetch(endpoint, params, apiKey) {
   return res.json()
 }
 
+// ─── Cache layer ──────────────────────────────────────────────
+const CACHE_VERSION = 'v2'
+const CHANNEL_TTL   = 60 * 60 * 1000       // 1 hour
+const VIDEOS_TTL    = 30 * 60 * 1000       // 30 minutes
+
+function cacheKey(type, id) {
+  return `tubeintel:${CACHE_VERSION}:${type}:${id}`
+}
+
+function cacheWrite(key, data) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ ts: Date.now(), data }))
+  } catch (e) {
+    console.warn('Cache write failed:', e)
+  }
+}
+
+function cacheRead(key, ttl) {
+  try {
+    const raw = localStorage.getItem(key)
+    if (!raw) return null
+    const { ts, data } = JSON.parse(raw)
+    if (Date.now() - ts > ttl) return null
+    return { data, cachedAt: ts }
+  } catch {
+    return null
+  }
+}
+
+function readRaw(key) {
+  try {
+    const r = localStorage.getItem(key)
+    return r ? JSON.parse(r) : null
+  } catch { return null }
+}
+
+/** All tubeintel cache keys */
+export function listCacheKeys() {
+  const keys = []
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k?.startsWith('tubeintel:')) keys.push(k)
+    }
+  } catch {}
+  return keys
+}
+
+/** Wipe every tubeintel cache entry */
+export function clearAllCache() {
+  listCacheKeys().forEach(k => { try { localStorage.removeItem(k) } catch {} })
+}
+
+/**
+ * Returns cache metadata for a given channel/playlist pair.
+ * channelId  — the channel's UC… id
+ * playlistId — the uploads playlist id (UU…)
+ */
+export function getCacheMeta(channelId, playlistId) {
+  if (!channelId) return null
+  const chRaw  = readRaw(cacheKey('channel', channelId))
+  const vidRaw = playlistId ? readRaw(cacheKey('videos', playlistId)) : null
+
+  if (!chRaw && !vidRaw) return null
+
+  const chValid  = chRaw  ? (Date.now() - chRaw.ts)  < CHANNEL_TTL : false
+  const vidValid = vidRaw ? (Date.now() - vidRaw.ts) < VIDEOS_TTL  : false
+
+  return {
+    channelCachedAt : chRaw?.ts  ?? null,
+    videosCachedAt  : vidRaw?.ts ?? null,
+    channelFresh    : chValid,
+    videosFresh     : vidValid,
+    channelTTL      : CHANNEL_TTL,
+    videosTTL       : VIDEOS_TTL,
+  }
+}
+
+// ─── URL parsing ───────────────────────────────────────────────
 export function parseYouTubeURL(raw) {
   const url = raw.trim().replace(/\/$/, '')
   const full = url.startsWith('http') ? url : 'https://' + url
@@ -41,7 +120,23 @@ export function parseYouTubeURL(raw) {
   }
 }
 
-export async function resolveChannel(parsed, apiKey, onStatus) {
+// ─── Channel resolution ────────────────────────────────────────
+export async function resolveChannel(parsed, apiKey, onStatus, forceRefresh = false) {
+  // If we have a direct ID, try cache first
+  if (parsed.type === 'id' && !forceRefresh) {
+    const hit = cacheRead(cacheKey('channel', parsed.value), CHANNEL_TTL)
+    if (hit) {
+      onStatus?.('Channel loaded from cache ✓')
+      return hit.data
+    }
+  }
+
+  const channel = await _fetchChannel(parsed, apiKey, onStatus)
+  cacheWrite(cacheKey('channel', channel.id), channel)
+  return channel
+}
+
+async function _fetchChannel(parsed, apiKey, onStatus) {
   if (parsed.type === 'id') {
     onStatus?.('Resolving channel by ID…')
     useQuota(1)
@@ -55,17 +150,19 @@ export async function resolveChannel(parsed, apiKey, onStatus) {
   if (parsed.type === 'handle') {
     onStatus?.(`Resolving @${parsed.value}…`)
     useQuota(1)
+    // Check cache by handle key too (stored after first resolution)
+    if (true) { /* always fetch fresh handle→id mapping */ }
     const data = await apiFetch('channels', {
       part: 'snippet,contentDetails,statistics',
       forHandle: parsed.value,
     }, apiKey)
     if (data.items?.length) return data.items[0]
-    return resolveViaSearch(parsed.value, apiKey, onStatus)
+    return _resolveViaSearch(parsed.value, apiKey, onStatus)
   }
-  return resolveViaSearch(parsed.value, apiKey, onStatus)
+  return _resolveViaSearch(parsed.value, apiKey, onStatus)
 }
 
-async function resolveViaSearch(query, apiKey, onStatus) {
+async function _resolveViaSearch(query, apiKey, onStatus) {
   onStatus?.(`Searching for "${query}"…`)
   useQuota(100)
   const search = await apiFetch('search', {
@@ -82,7 +179,24 @@ async function resolveViaSearch(query, apiKey, onStatus) {
   return data.items[0]
 }
 
-export async function fetchVideos(uploadsPlaylistId, apiKey, onStatus, days = 30) {
+// ─── Video fetching ────────────────────────────────────────────
+export async function fetchVideos(uploadsPlaylistId, apiKey, onStatus, days = 30, forceRefresh = false) {
+  const key = cacheKey('videos', uploadsPlaylistId)
+
+  if (!forceRefresh) {
+    const hit = cacheRead(key, VIDEOS_TTL)
+    if (hit) {
+      onStatus?.(`${hit.data.length} videos loaded from cache ✓`)
+      return hit.data
+    }
+  }
+
+  const videos = await _fetchVideosFromAPI(uploadsPlaylistId, apiKey, onStatus, days)
+  cacheWrite(key, videos)
+  return videos
+}
+
+async function _fetchVideosFromAPI(uploadsPlaylistId, apiKey, onStatus, days) {
   const since = new Date()
   since.setDate(since.getDate() - days)
   const sinceISO = since.toISOString()
@@ -115,7 +229,7 @@ export async function fetchVideos(uploadsPlaylistId, apiKey, onStatus, days = 30
   const enriched = []
   for (let i = 0; i < allMeta.length; i += 50) {
     const batch = allMeta.slice(i, i + 50)
-    onStatus?.(`Enriching videos ${i + 1}–${Math.min(i + 50, allMeta.length)} of ${allMeta.length}…`)
+    onStatus?.(`Enriching ${i + 1}–${Math.min(i + 50, allMeta.length)} of ${allMeta.length} videos…`)
     useQuota(1)
     const stats = await apiFetch('videos', {
       part: 'statistics,contentDetails',
@@ -153,6 +267,7 @@ export async function fetchVideos(uploadsPlaylistId, apiKey, onStatus, days = 30
   }))
 }
 
+// ─── Helpers ───────────────────────────────────────────────────
 export function parseDuration(iso) {
   const m = iso.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/)
   if (!m) return 0
@@ -172,6 +287,18 @@ export function fmtNum(n) {
   if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M'
   if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K'
   return Math.round(n).toLocaleString()
+}
+
+/** Human-readable relative time from a timestamp */
+export function timeAgo(ts) {
+  if (!ts) return ''
+  const diff  = Date.now() - ts
+  const mins  = Math.floor(diff / 60000)
+  const hours = Math.floor(diff / 3600000)
+  if (mins < 1)   return 'just now'
+  if (mins < 60)  return `${mins}m ago`
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
 }
 
 export function exportCSV(videos, channelName) {

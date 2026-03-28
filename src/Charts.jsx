@@ -117,15 +117,15 @@ export default function Charts({ videos, onVideoClick, highlightId, theme }) {
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: 14, marginBottom: 28 }}>
 
       {/* ── Timeline ── */}
-      <div style={cardStyle}>
+      <div style={cardStyle} title="View count trend over time. Click any point to view that video.">
         <p style={titleStyle}>// Views over time</p>
         <ResponsiveContainer width="100%" height={180}>
           <LineChart data={timelineData} onClick={(state) => {
             if (state?.activePayload?.[0]?.payload) onVideoClick(state.activePayload[0].payload)
           }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="label" tick={mono(9)} tickLine={false} axisLine={false} interval="preserveStartEnd" />
-            <YAxis tick={mono(9)} tickLine={false} axisLine={false} tickFormatter={fmtNum} width={48} />
+            <XAxis dataKey="label" tick={mono(9)} tickLine={false} axisLine={false} interval="preserveStartEnd" label={{ value: 'Date', position: 'insideBottomRight', offset: -5, style: { ...mono(9) } }} />
+            <YAxis tick={mono(9)} tickLine={false} axisLine={false} tickFormatter={fmtNum} width={48} label={{ value: 'Views', angle: -90, position: 'insideLeft', style: { ...mono(9) } }} />
             <Tooltip content={<ChartTooltip field="views" />} />
             <Line
               type="monotone" dataKey="views"
@@ -141,14 +141,14 @@ export default function Charts({ videos, onVideoClick, highlightId, theme }) {
       </div>
 
       {/* ── Scatter: views vs engagement ── */}
-      <div style={cardStyle}>
+      <div style={cardStyle} title="Compares view count (X-axis) vs engagement rate (Y-axis). Click any dot to view that video.">
         <p style={titleStyle}>// Views vs engagement rate</p>
         <ResponsiveContainer width="100%" height={180}>
           <ScatterChart>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="x" name="Views" tick={mono(9)} tickLine={false} axisLine={false} tickFormatter={fmtNum} />
+            <XAxis dataKey="x" name="Views" tick={mono(9)} tickLine={false} axisLine={false} tickFormatter={fmtNum} label={{ value: 'Views', position: 'insideBottomRight', offset: -5, style: { ...mono(9) } }} />
             <YAxis dataKey="y" name="Engagement" tick={mono(9)} tickLine={false} axisLine={false}
-              tickFormatter={v => v.toFixed(1) + '%'} width={44} />
+              tickFormatter={v => v.toFixed(1) + '%'} width={44} label={{ value: 'Engagement %', angle: -90, position: 'insideLeft', style: { ...mono(9) } }} />
             <Tooltip content={<ChartTooltip field="engagement" suffix="%" />} />
             <Scatter
               data={scatterData}
@@ -183,7 +183,7 @@ export default function Charts({ videos, onVideoClick, highlightId, theme }) {
       </div>
 
       {/* ── Upload cadence ── */}
-      <div style={cardStyle}>
+      <div style={cardStyle} title="Shows how many videos uploaded per day of week. Click a bar to view that day's top video.">
         <p style={titleStyle}>// Upload cadence (videos per day)</p>
         <ResponsiveContainer width="100%" height={180}>
           <BarChart data={dayData} onClick={(state) => {
@@ -195,8 +195,8 @@ export default function Charts({ videos, onVideoClick, highlightId, theme }) {
             }
           }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="day" tick={mono(9)} tickLine={false} axisLine={false} />
-            <YAxis tick={mono(9)} tickLine={false} axisLine={false} allowDecimals={false} width={28} />
+            <XAxis dataKey="day" tick={mono(9)} tickLine={false} axisLine={false} label={{ value: 'Day of Week', position: 'insideBottomRight', offset: -5, style: { ...mono(9) } }} />
+            <YAxis tick={mono(9)} tickLine={false} axisLine={false} allowDecimals={false} width={28} label={{ value: 'Videos', angle: -90, position: 'insideLeft', style: { ...mono(9) } }} />
             <Tooltip
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null

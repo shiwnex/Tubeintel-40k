@@ -84,16 +84,16 @@ function VideoCard({ video, onClick, isHighlighted, index }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '6px 0' }}>
           {[
-            { label: 'Views', value: fmtNum(video.views), color: video.trend === 'hot' ? 'var(--hot)' : video.trend === 'rising' ? 'var(--rising)' : 'var(--text)' },
-            { label: 'Likes', value: fmtNum(video.likes), color: 'var(--text)' },
-            { label: 'Eng %', value: video.engagement.toFixed(1) + '%', color: video.engagement > 5 ? 'var(--accent)' : 'var(--text)' },
-            { label: 'Comments', value: fmtNum(video.comments), color: 'var(--text)' },
-            { label: 'Velocity', value: fmtNum(Math.round(video.velocity)) + '/d', color: video.trend !== 'normal' ? (video.trend === 'hot' ? 'var(--hot)' : 'var(--rising)') : 'var(--text)' },
-            { label: 'Age', value: video.daysOld + 'd', color: 'var(--text2)' },
-          ].map(({ label, value, color }) => (
-            <div key={label}>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(7px, 1.5vw, 8px)', letterSpacing: '0.12em', color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 1, margin: 0 }}>{label}</p>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(10px, 2vw, 12px)', fontWeight: 500, color, margin: 0 }}>{value}</p>
+            { label: 'Views', value: fmtNum(video.views), color: video.trend === 'hot' ? 'var(--hot)' : video.trend === 'rising' ? 'var(--rising)' : 'var(--text)', tooltip: 'Total views' },
+            { label: 'Likes', value: fmtNum(video.likes), color: 'var(--text)', tooltip: 'Total likes' },
+            { label: 'Eng %', value: video.engagement.toFixed(1) + '%', color: video.engagement > 5 ? 'var(--accent)' : 'var(--text)', tooltip: '(Likes + Comments) / Views' },
+            { label: 'Comments', value: fmtNum(video.comments), color: 'var(--text)', tooltip: 'Total comments' },
+            { label: 'Velocity', value: fmtNum(Math.round(video.velocity)) + '/d', color: video.trend !== 'normal' ? (video.trend === 'hot' ? 'var(--hot)' : 'var(--rising)') : 'var(--text)', tooltip: 'Views per day' },
+            { label: 'Age', value: video.daysOld + 'd', color: 'var(--text2)', tooltip: 'Days since upload' },
+          ].map(({ label, value, color, tooltip }) => (
+            <div key={label} title={tooltip}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(7px, 1.5vw, 8px)', letterSpacing: '0.12em', color: 'var(--text3)', textTransform: 'uppercase', marginBottom: 1, margin: 0, cursor: 'help' }}>{label}</p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 'clamp(10px, 2vw, 12px)', fontWeight: 500, color, margin: 0, cursor: 'help' }}>{value}</p>
             </div>
           ))}
         </div>
