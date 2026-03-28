@@ -1,0 +1,160 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Bricolage+Grotesque:wght@300;400;500;600;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --font-display: 'Bricolage Grotesque', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+
+  /* Dark theme */
+  --bg:        #09090f;
+  --bg2:       #111119;
+  --bg3:       #16161f;
+  --bg4:       #1e1e2a;
+  --bg5:       #25253a;
+  --border:    rgba(255,255,255,0.06);
+  --border2:   rgba(255,255,255,0.11);
+  --border3:   rgba(255,255,255,0.18);
+  --text:      #eeeef5;
+  --text2:     #9898b0;
+  --text3:     #55556a;
+  --accent:    #6c63ff;
+  --accent2:   #9d97ff;
+  --accent-bg: rgba(108,99,255,0.12);
+  --hot:       #ff5e5e;
+  --hot-bg:    rgba(255,94,94,0.12);
+  --rising:    #00d68f;
+  --rising-bg: rgba(0,214,143,0.1);
+  --warn:      #ffaa00;
+  --warn-bg:   rgba(255,170,0,0.1);
+  --shadow:    0 4px 24px rgba(0,0,0,0.4);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+  --highlight: rgba(108,99,255,0.18);
+  --highlight-ring: 0 0 0 2px rgba(108,99,255,0.5);
+}
+
+[data-theme="light"] {
+  --bg:        #f5f5fa;
+  --bg2:       #ffffff;
+  --bg3:       #ededf5;
+  --bg4:       #e4e4ef;
+  --bg5:       #d8d8ea;
+  --border:    rgba(0,0,0,0.07);
+  --border2:   rgba(0,0,0,0.12);
+  --border3:   rgba(0,0,0,0.2);
+  --text:      #12121f;
+  --text2:     #55556a;
+  --text3:     #9898b0;
+  --accent:    #5046e5;
+  --accent2:   #7c74ff;
+  --accent-bg: rgba(80,70,229,0.09);
+  --hot:       #e03030;
+  --hot-bg:    rgba(224,48,48,0.09);
+  --rising:    #00a86b;
+  --rising-bg: rgba(0,168,107,0.09);
+  --warn:      #d97706;
+  --warn-bg:   rgba(217,119,6,0.09);
+  --shadow:    0 4px 24px rgba(0,0,0,0.1);
+  --shadow-sm: 0 2px 8px rgba(0,0,0,0.07);
+  --highlight: rgba(80,70,229,0.1);
+  --highlight-ring: 0 0 0 2px rgba(80,70,229,0.4);
+}
+
+html { 
+  font-size: 16px;
+  height: 100%;
+  overflow-y: auto;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+  min-height: 100vh;
+  transition: background 0.3s, color 0.3s;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Mobile responsive base */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+}
+
+::selection { background: var(--accent-bg); color: var(--accent2); }
+
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--bg5); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+button { font-family: var(--font-display); cursor: pointer; }
+input, select { font-family: var(--font-mono); }
+
+/* Mobile specific touch improvements */
+@media (hover: none) and (pointer: coarse) {
+  button, a, input, select {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  input, select, textarea {
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+    padding: clamp(10px, 2.5vw, 14px) clamp(12px, 3vw, 16px);
+  }
+}
+
+/* Ultra mobile (< 480px) */
+@media (max-width: 480px) {
+  html {
+    font-size: 13px;
+  }
+}
+
+/* Tablet landscape (< 768px) */
+@media (max-width: 768px) {
+  html {
+    font-size: 14px;
+  }
+  
+  /* Ensure reasonable spacing on small screens */
+  button, input, select {
+    font-size: 16px !important; /* Prevents zoom on iOS */
+  }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position: 600px 0; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+
+.animate-fadeup { animation: fadeUp 0.45s cubic-bezier(0.22,1,0.36,1) both; }
