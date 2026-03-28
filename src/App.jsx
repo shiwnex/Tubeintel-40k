@@ -122,7 +122,10 @@ function RefreshIcon({ spinning }) {
 export default function App() {
   const [theme, setTheme] = useState('light')
   const [channelUrl, setChannelUrl] = useState('')
-  const [apiKey, setApiKey] = useState('')
+  // Load API key from environment variable (VITE_YOUTUBE_API_KEY) or empty string
+  const [apiKey, setApiKey] = useState(
+    import.meta.env.VITE_YOUTUBE_API_KEY || ''
+  )
   const [channel, setChannel] = useState(null)
   const [videos, setVideos] = useState([])
   const [loading, setLoading] = useState(false)
@@ -264,16 +267,18 @@ export default function App() {
               onFocus={e => e.target.style.borderColor = 'var(--accent)'}
               onBlur={e  => e.target.style.borderColor = 'var(--border2)'}
             />
-            <input
-              type="password"
-              placeholder="YouTube Data API key"
-              value={apiKey}
-              onChange={e => setApiKey(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleFetch()}
-              style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'var(--accent)'}
-              onBlur={e  => e.target.style.borderColor = 'var(--border2)'}
-            />
+            {!import.meta.env.VITE_YOUTUBE_API_KEY && (
+              <input
+                type="password"
+                placeholder="YouTube Data API key"
+                value={apiKey}
+                onChange={e => setApiKey(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleFetch()}
+                style={inputStyle}
+                onFocus={e => e.target.style.borderColor = 'var(--accent)'}
+                onBlur={e  => e.target.style.borderColor = 'var(--border2)'}
+              />
+            )}
             <button
               onClick={handleFetch}
               disabled={loading || refreshing}
