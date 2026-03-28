@@ -17,49 +17,49 @@
 Started by mapping which metrics are accessible through the public YouTube Data API v3 vs. what's restricted to channel owners.
 
 #### ✅ **A. Core Performance Metrics** (Partially Accessible)
-| Metric | Accessible? | Source | Notes |
-|--------|-----------|--------|-------|
-| Views | ✅ Yes | `videos.list` → `statistics.viewCount` | Primary metric |
-| Impressions | ❌ No | YouTube Studio only | Never exposed via API |
-| CTR | ❌ No | YouTube Studio only | Owner-only data |
-| Average View Duration | ❌ No | YouTube Analytics API | Owner-only |
-| Watch Time (Hours) | ❌ No | YouTube Analytics API | Owner-only |
-| % Viewed | ❌ No | YouTube Studio | Owner-only |
+| Metric                     | Accessible? | Source                                         | Notes                   |
+|----------------------------|-------------|------------------------------------------------|-------------------------|
+| Views                      | ✅ Yes      | `videos.list` → `statistics.viewCount`         | Primary metric          |
+| Impressions                | ❌ No       | YouTube Studio only                            | Never exposed via API   |
+| CTR                        | ❌ No       | YouTube Studio only                            | Owner-only data         |
+| Average View Duration      | ❌ No       | YouTube Analytics API                          | Owner-only              |
+| Watch Time (Hours)         | ❌ No       | YouTube Analytics API                          | Owner-only              |
+| % Viewed                   | ❌ No       | YouTube Studio                                 | Owner-only              |
 
 **Workaround Implemented**: 
 - **Velocity metric** = Views ÷ Days since publish
 - Serves as strong proxy for watch time momentum and trending potential
 
 #### ✅ **B. Audience Loyalty** (Mostly Inaccessible)
-| Metric | Accessible? | Solution |
-|--------|-----------|----------|
-| Subscriber Count | ✅ Yes | `channels.list` → `statistics.subscriberCount` |
-| New vs. Returning Viewers | ❌ No | Owner-only |
-| Subscriber Growth Velocity | ⚠️ Partial | Snapshot current count over time |
-| Bell Notifications % | ❌ No | Never exposed |
+| Metric                        | Accessible?  | Solution                                     |
+|-------------------------------|--------------|----------------------------------------------|
+| Subscriber Count              | ✅ Yes       | `channels.list` → `statistics.subscriberCount` |
+| New vs. Returning Viewers     | ❌ No        | Owner-only                                   |
+| Subscriber Growth Velocity    | ⚠️ Partial   | Snapshot current count over time             |
+| Bell Notifications %          | ❌ No        | Never exposed                                |
 
 **Workaround Implemented**:
 - localStorage snapshot storage of subscriber count
 - Over time builds growth curve for trend analysis
 
 #### ✅ **C. Sentiment & Engagement** (Mostly Accessible)
-| Metric | Accessible? | Source |
-|--------|-----------|--------|
-| Likes | ✅ Yes | `statistics.likeCount` |
-| Comments Count | ✅ Yes | `statistics.commentCount` |
-| Comment Text | ✅ Yes | `commentThreads.list` (public comments) |
-| Engagement % | ✅ Buildable | (Likes + Comments) ÷ Views × 100 |
-| Shares | ❌ No | Never in public API |
+| Metric              | Accessible?  | Source                                          |
+|---------------------|--------------|------------------------------------------------|
+| Likes               | ✅ Yes       | `statistics.likeCount`                         |
+| Comments Count      | ✅ Yes       | `statistics.commentCount`                      |
+| Comment Text        | ✅ Yes       | `commentThreads.list` (public comments)        |
+| Engagement %        | ✅ Buildable  | (Likes + Comments) ÷ Views × 100              |
+| Shares              | ❌ No        | Never in public API                            |
 
 **Key Win**: Comments are fully accessible → enables future NLP/sentiment analysis
 
 #### ✅ **D. Discoverability** (Partially Accessible)
-| Metric | Accessible? | Approach |
-|--------|-----------|----------|
-| Video Tags | ✅ Yes | `videos.list` → `snippet.tags` |
-| Title/Description Keywords | ✅ Yes | Fully public |
-| Traffic Source Breakdown | ❌ No | Owner-only |
-| Search Ranking | ⚠️ Buildable | `search.list` (quota-heavy: 100 units/call) |
+| Metric                      | Accessible?  | Approach                                       |
+|-----------------------------|--------------|------------------------------------------------|
+| Video Tags                  | ✅ Yes       | `videos.list` → `snippet.tags`                 |
+| Title/Description Keywords  | ✅ Yes       | Fully public                                   |
+| Traffic Source Breakdown    | ❌ No        | Owner-only                                     |
+| Search Ranking              | ⚠️ Buildable | `search.list` (quota-heavy: 100 units/call)   |
 
 ---
 
